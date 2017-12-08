@@ -320,9 +320,12 @@ func (stmt *Statement) Execute(params ...interface{}) *ODBCError {
 	if ret == C.SQL_NEED_DATA {
 		// TODO
 		//		send_data(stmt)
+        //fmt.Println("ret == C.SQL_NEED_DATA")
 	} else if ret == C.SQL_NO_DATA {
 		// Execute NO DATA
+        //fmt.Println("ret == C.SQL_NO_DATA")
 	} else if !Success(ret) {
+        //fmt.Println("!Success(ret)")
 		err := FormatError(C.SQL_HANDLE_STMT, stmt.handle)
 		return err
 	}
@@ -481,7 +484,8 @@ func (stmt *Statement) GetField(field_index int) (v interface{}, ftype int, flen
 	var fl C.SQLLEN = C.SQLLEN(field_len)
 	switch int(field_type) {
 	case C.SQL_BIT:
-		var value C.BYTE
+		//var value C.BYTE
+        var value C.SQLCHAR
 		ret = C.SQLGetData(C.SQLHSTMT(stmt.handle), C.SQLUSMALLINT(field_index+1), C.SQL_C_BIT, C.SQLPOINTER(unsafe.Pointer(&value)), 0, &fl)
 		if fl == -1 {
 			v = nil
@@ -632,8 +636,15 @@ func (stmt *Statement) BindParam(index int, param interface{}) *ODBCError {
 			var slen C.SQLUINTEGER = C.SQLUINTEGER(len(v.String()))
 			ParameterType = C.SQL_VARCHAR
 			ValueType = C.SQL_C_CHAR
-			s := []byte(v.String())
-			ParameterValuePtr = C.SQLPOINTER(unsafe.Pointer(&s[0]))
+			//s := []byte(v.String())
+			//ParameterValuePtr = C.SQLPOINTER(unsafe.Pointer(&s[0]))
+            if slen > 0 {
+                s := []byte(v.String())
+                ParameterValuePtr = C.SQLPOINTER(unsafe.Pointer(&s[0]))
+            } else {
+                b := byte(0)
+                ParameterValuePtr = C.SQLPOINTER(unsafe.Pointer(&b))
+            }
 			ColumnSize = C.SQLULEN(slen)
 			BufferLength = C.SQLLEN(slen + 1)
 			StrLen_or_IndPt = C.SQLLEN(slen)

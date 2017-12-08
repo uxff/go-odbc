@@ -1,5 +1,7 @@
 ODBC database driver for Go
 
+Can drive Mysql,Mssql,Hive via odbc.
+
 Install:
 	cd $GOPATH/src
 	git clone git://github.com/weigj/go-odbc.git odbc
@@ -8,6 +10,7 @@ Install:
 
 Example:
 
+```
 package main
 
 import (
@@ -16,6 +19,7 @@ import (
 
 func main() {
 	conn, _ := odbc.Connect("DSN=dsn;UID=user;PWD=password")
+    // if you configured odbc.ini, use the block name like DSN=ClouderaHive 
 	stmt, _ := conn.Prepare("select * from user where username = ?")
 	stmt.Execute("admin")
 	rows, _ := stmt.FetchAll()
@@ -26,7 +30,40 @@ func main() {
 	conn.Close()
 }
 
+```
 Tested on:
 	SQL Server 2005 and Windows 7 
 	SQL Server 2005 and Ubuntu 10.4 (UnixODBC+FreeTDS)
 	Oracle 10g and Windows 7
+    [Cloudera Hive 2.5](https://www.cloudera.com/downloads/connectors/hive/odbc/2-5-20.html)
+    Mysql 5.6.16
+
+ClouderaHive configured:
+install cloudera libhiveodbc.so from [Cloudera Hive Odbc Driver](https://www.cloudera.com/downloads/connectors/hive/odbc/2-5-20.html)
+for centos/redhat use [ClouderaHiveODBC-2.5.20.1006-1.el7.x86_64.rpm](https://downloads.cloudera.com/connectors/hive_odbc_2.5.20.1006/Linux/EL7/ClouderaHiveODBC-2.5.20.1006-1.el7.x86_64.rpm)
+vim /etc/odbc.ini
+```
+[ClouderaHive]
+Driver=/opt/cloudera/hiveodbc/lib/64/libclouderahiveodbc64.so
+Description=Hive Cloudera ODBC Driver
+Host=1.2.3.4
+Port=50000
+#Schema = database name
+Schema=
+ServiceDiscoveryMode=0
+ZKNamespace=
+HiveServerType=2
+#AuthMech=3
+# 0=NOSASL
+AuthMech=0
+ThriftTransport=1
+UseNativeQuery=0
+UID=cloudera
+
+```
+use isql to test
+```
+$ isql ClouderaHive
+> ...
+```
+
